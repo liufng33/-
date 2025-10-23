@@ -1,0 +1,48 @@
+[
+  {
+    "name": "Primary Search Source",
+    "type": "SEARCH",
+    "baseUrl": "https://api.primary.com/search",
+    "parserClass": "com.app.parser.PrimarySearchParser",
+    "isEnabled": true,
+    "priority": 100,
+    "metadata": {
+      "apiVersion": "v1",
+      "requiresAuth": "false"
+    }
+  },
+  {
+    "name": "Secondary Search Source",
+    "type": "SEARCH",
+    "baseUrl": "https://api.secondary.com/search",
+    "parserClass": "com.app.parser.SecondarySearchParser",
+    "isEnabled": true,
+    "priority": 90,
+    "metadata": {
+      "apiVersion": "v2",
+      "requiresAuth": "true"
+    }
+  },
+  {
+    "name": "Content Parser",
+    "type": "PARSER",
+    "baseUrl": "https://api.parser.com",
+    "parserClass": "com.app.parser.ContentParser",
+    "isEnabled": true,
+    "priority": 80,
+    "metadata": {
+      "supportedFormats": "html,xml,json"
+    }
+  },
+  {
+    "name": "Hybrid Source",
+    "type": "HYBRID",
+    "baseUrl": "https://api.hybrid.com",
+    "parserClass": "com.app.parser.HybridParser",
+    "isEnabled": true,
+    "priority": 85,
+    "metadata": {
+      "features": "search,parse,transform"
+    }
+  }
+]
