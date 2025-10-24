@@ -1,0 +1,42 @@
+{
+  "search_sources": [
+    {
+      "id": "default_source_1",
+      "name": "默认搜索源1",
+      "api": "https://example.com/api/search",
+      "enabled": true,
+      "priority": 10,
+      "description": "默认的视频搜索源"
+    },
+    {
+      "id": "default_source_2",
+      "name": "默认搜索源2",
+      "api": "https://example2.com/api/search",
+      "enabled": true,
+      "priority": 5,
+      "description": "备用搜索源"
+    }
+  ],
+  "parser_sources": [
+    {
+      "id": "default_parser_1",
+      "name": "默认解析器1",
+      "url": "https://parser.example.com/parse",
+      "domains": ["example.com", "video.example.com"],
+      "enabled": true,
+      "priority": 10,
+      "timeout": 30000,
+      "description": "默认视频解析器"
+    },
+    {
+      "id": "default_parser_2",
+      "name": "默认解析器2",
+      "url": "https://parser2.example.com/parse",
+      "domains": ["another.com", "video.another.com"],
+      "enabled": true,
+      "priority": 5,
+      "timeout": 30000,
+      "description": "备用解析器"
+    }
+  ]
+}
