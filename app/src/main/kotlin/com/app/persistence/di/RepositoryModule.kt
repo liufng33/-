@@ -1,13 +1,7 @@
 package com.app.persistence.di
 
-import com.app.persistence.data.repository.CustomRuleRepositoryImpl
-import com.app.persistence.data.repository.PreferencesRepositoryImpl
-import com.app.persistence.data.repository.SourceRepositoryImpl
-import com.app.persistence.data.repository.UserSelectionRepositoryImpl
-import com.app.persistence.domain.repository.CustomRuleRepository
-import com.app.persistence.domain.repository.PreferencesRepository
-import com.app.persistence.domain.repository.SourceRepository
-import com.app.persistence.domain.repository.UserSelectionRepository
+import com.app.persistence.data.repository.*
+import com.app.persistence.domain.repository.*
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -41,4 +35,22 @@ abstract class RepositoryModule {
     abstract fun bindPreferencesRepository(
         impl: PreferencesRepositoryImpl
     ): PreferencesRepository
+    
+    @Binds
+    @Singleton
+    abstract fun bindSearchRepository(
+        impl: SearchRepositoryImpl
+    ): SearchRepository
+    
+    @Binds
+    @Singleton
+    abstract fun bindParserRepository(
+        impl: ParserRepositoryImpl
+    ): ParserRepository
+    
+    @Binds
+    @Singleton
+    abstract fun bindPlaybackRepository(
+        impl: PlaybackRepositoryImpl
+    ): PlaybackRepository
 }
