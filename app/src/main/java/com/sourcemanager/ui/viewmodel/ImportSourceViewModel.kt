@@ -6,10 +6,12 @@ import androidx.lifecycle.viewModelScope
 import com.sourcemanager.domain.model.ImportResult
 import com.sourcemanager.domain.usecase.ImportSourcesFromApiUseCase
 import com.sourcemanager.domain.usecase.ImportSourcesFromJsonUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class ImportSourceUiState(
     val apiUrl: String = "",
@@ -23,7 +25,8 @@ data class ImportSourceUiState(
     val apiUrlError: String? = null
 )
 
-class ImportSourceViewModel(
+@HiltViewModel
+class ImportSourceViewModel @Inject constructor(
     private val importFromApiUseCase: ImportSourcesFromApiUseCase,
     private val importFromJsonUseCase: ImportSourcesFromJsonUseCase,
     private val savedStateHandle: SavedStateHandle

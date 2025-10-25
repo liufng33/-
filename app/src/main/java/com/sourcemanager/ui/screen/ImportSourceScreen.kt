@@ -1,14 +1,19 @@
 package com.sourcemanager.ui.screen
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.FileOpen
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.sourcemanager.ui.viewmodel.ImportSourceUiState
 
@@ -25,6 +30,24 @@ fun ImportSourceScreen(
     onClearSuccess: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+    
+    val filePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            try {
+                val content = context.contentResolver.openInputStream(it)?.bufferedReader()?.use { reader ->
+                    reader.readText()
+                }
+                content?.let { jsonContent ->
+                    onJsonContentChange(jsonContent)
+                }
+            } catch (e: Exception) {
+                // Handle error
+            }
+        }
+    }
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let {
@@ -79,7 +102,7 @@ fun ImportSourceScreen(
                         supportingText = uiState.apiUrlError?.let { { Text(it) } },
                         modifier = Modifier.fillMaxWidth(),
                         enabled = !uiState.isLoading,
-                        placeholder = { Text("https://api.example.com/sources") }
+                        placeholder = { Text("https://132130.v.nxog.top/api1.php?id=3") }
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -107,6 +130,27 @@ fun ImportSourceScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { filePickerLauncher.launch("application/json") },
+                            modifier = Modifier.weight(1f),
+                            enabled = !uiState.isLoading
+                        ) {
+                            Icon(
+                                Icons.Default.FileOpen,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Select File")
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
                     OutlinedTextField(
                         value = uiState.jsonContent,
                         onValueChange = onJsonContentChange,
@@ -125,7 +169,7 @@ fun ImportSourceScreen(
                     Button(
                         onClick = onImportFromJson,
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = !uiState.isLoading
+                        enabled = !uiState.isLoading && uiState.jsonContent.isNotBlank()
                     ) {
                         Text("Import from JSON")
                     }

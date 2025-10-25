@@ -6,12 +6,15 @@ import androidx.lifecycle.viewModelScope
 import com.sourcemanager.domain.model.Source
 import com.sourcemanager.domain.model.SourceType
 import com.sourcemanager.domain.usecase.AddSourceUseCase
+import com.sourcemanager.domain.usecase.GetSourceByIdUseCase
 import com.sourcemanager.domain.usecase.UpdateSourceUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.UUID
+import javax.inject.Inject
 
 data class AddEditSourceUiState(
     val id: String = UUID.randomUUID().toString(),
@@ -26,9 +29,11 @@ data class AddEditSourceUiState(
     val urlError: String? = null
 )
 
-class AddEditSourceViewModel(
+@HiltViewModel
+class AddEditSourceViewModel @Inject constructor(
     private val addSourceUseCase: AddSourceUseCase,
     private val updateSourceUseCase: UpdateSourceUseCase,
+    private val getSourceByIdUseCase: GetSourceByIdUseCase,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -60,6 +65,14 @@ class AddEditSourceViewModel(
             sourceType = source.type
         )
         saveState()
+    }
+
+    fun loadSourceById(sourceId: String) {
+        viewModelScope.launch {
+            getSourceByIdUseCase(sourceId)?.let { source ->
+                loadSource(source)
+            }
+        }
     }
 
     fun updateName(name: String) {

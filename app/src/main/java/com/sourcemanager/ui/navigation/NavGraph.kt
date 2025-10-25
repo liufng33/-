@@ -1,9 +1,10 @@
 package com.sourcemanager.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -27,17 +28,15 @@ sealed class Screen(val route: String) {
 
 @Composable
 fun NavGraph(
-    navController: NavHostController,
-    sourceListViewModel: SourceListViewModel,
-    addEditSourceViewModelFactory: (String?) -> AddEditSourceViewModel,
-    importSourceViewModel: ImportSourceViewModel
+    navController: NavHostController
 ) {
     NavHost(
         navController = navController,
         startDestination = Screen.SourceList.route
     ) {
         composable(Screen.SourceList.route) {
-            val uiState by sourceListViewModel.uiState.collectAsState()
+            val viewModel: SourceListViewModel = hiltViewModel()
+            val uiState by viewModel.uiState.collectAsState()
             
             SourceListScreen(
                 uiState = uiState,
@@ -51,19 +50,25 @@ fun NavGraph(
                     navController.navigate(Screen.ImportSource.route)
                 },
                 onDeleteSource = { sourceId ->
-                    sourceListViewModel.deleteSource(sourceId)
+                    viewModel.deleteSource(sourceId)
                 },
                 onSwitchActiveSource = { sourceId, type ->
-                    sourceListViewModel.switchActiveSource(sourceId, type)
+                    viewModel.switchActiveSource(sourceId, type)
                 },
-                onClearError = { sourceListViewModel.clearError() },
-                onClearSuccess = { sourceListViewModel.clearSuccessMessage() }
+                onClearError = { viewModel.clearError() },
+                onClearSuccess = { viewModel.clearSuccessMessage() }
             )
         }
 
         composable(Screen.AddSource.route) {
-            val viewModel = addEditSourceViewModelFactory(null)
+            val viewModel: AddEditSourceViewModel = hiltViewModel()
             val uiState by viewModel.uiState.collectAsState()
+
+            LaunchedEffect(uiState.isSaved) {
+                if (uiState.isSaved) {
+                    navController.popBackStack()
+                }
+            }
 
             AddEditSourceScreen(
                 uiState = uiState,
@@ -85,8 +90,20 @@ fun NavGraph(
             )
         ) { backStackEntry ->
             val sourceId = backStackEntry.arguments?.getString("sourceId")
-            val viewModel = addEditSourceViewModelFactory(sourceId)
+            val viewModel: AddEditSourceViewModel = hiltViewModel()
             val uiState by viewModel.uiState.collectAsState()
+
+            LaunchedEffect(sourceId) {
+                sourceId?.let {
+                    viewModel.loadSourceById(it)
+                }
+            }
+
+            LaunchedEffect(uiState.isSaved) {
+                if (uiState.isSaved) {
+                    navController.popBackStack()
+                }
+            }
 
             AddEditSourceScreen(
                 uiState = uiState,
@@ -102,17 +119,18 @@ fun NavGraph(
         }
 
         composable(Screen.ImportSource.route) {
-            val uiState by importSourceViewModel.uiState.collectAsState()
+            val viewModel: ImportSourceViewModel = hiltViewModel()
+            val uiState by viewModel.uiState.collectAsState()
 
             ImportSourceScreen(
                 uiState = uiState,
-                onApiUrlChange = { importSourceViewModel.updateApiUrl(it) },
-                onJsonContentChange = { importSourceViewModel.updateJsonContent(it) },
-                onImportFromApi = { importSourceViewModel.importFromApi() },
-                onImportFromJson = { importSourceViewModel.importFromJson() },
+                onApiUrlChange = { viewModel.updateApiUrl(it) },
+                onJsonContentChange = { viewModel.updateJsonContent(it) },
+                onImportFromApi = { viewModel.importFromApi() },
+                onImportFromJson = { viewModel.importFromJson() },
                 onNavigateBack = { navController.popBackStack() },
-                onClearError = { importSourceViewModel.clearError() },
-                onClearSuccess = { importSourceViewModel.clearSuccessMessage() }
+                onClearError = { viewModel.clearError() },
+                onClearSuccess = { viewModel.clearSuccessMessage() }
             )
         }
     }

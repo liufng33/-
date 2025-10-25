@@ -1,43 +1,44 @@
 package com.sourcemanager.data.repository
 
 import android.util.Patterns
+import com.sourcemanager.data.local.dao.SourceDao
+import com.sourcemanager.data.local.entity.toDomain
+import com.sourcemanager.data.local.entity.toEntity
+import com.sourcemanager.data.remote.api.SourceApiService
+import com.sourcemanager.data.remote.dto.toDomain
 import com.sourcemanager.domain.model.ImportResult
 import com.sourcemanager.domain.model.Source
 import com.sourcemanager.domain.model.SourceType
 import com.sourcemanager.domain.repository.SourceRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
-import kotlinx.serialization.Serializable
+import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class SourceRepositoryImpl : SourceRepository {
-    private val _sources = MutableStateFlow<List<Source>>(emptyList())
+@Singleton
+class SourceRepositoryImpl @Inject constructor(
+    private val sourceDao: SourceDao,
+    private val apiService: SourceApiService
+) : SourceRepository {
+    
     private val json = Json { ignoreUnknownKeys = true }
 
-    @Serializable
-    data class SourceDto(
-        val id: String,
-        val name: String,
-        val type: String,
-        val url: String,
-        val isActive: Boolean = false,
-        val description: String = ""
-    )
-
-    override fun getSources(): Flow<List<Source>> = _sources.asStateFlow()
+    override fun getSources(): Flow<List<Source>> {
+        return sourceDao.getAllSources().map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
 
     override suspend fun getSourceById(id: String): Source? {
-        return _sources.value.find { it.id == id }
+        return sourceDao.getSourceById(id)?.toDomain()
     }
 
     override suspend fun addSource(source: Source): Result<Unit> {
         return try {
-            val currentSources = _sources.value.toMutableList()
-            currentSources.add(source)
-            _sources.value = currentSources
+            sourceDao.insertSource(source.toEntity())
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -46,11 +47,9 @@ class SourceRepositoryImpl : SourceRepository {
 
     override suspend fun updateSource(source: Source): Result<Unit> {
         return try {
-            val currentSources = _sources.value.toMutableList()
-            val index = currentSources.indexOfFirst { it.id == source.id }
-            if (index != -1) {
-                currentSources[index] = source
-                _sources.value = currentSources
+            val existing = sourceDao.getSourceById(source.id)
+            if (existing != null) {
+                sourceDao.updateSource(source.toEntity())
                 Result.success(Unit)
             } else {
                 Result.failure(Exception("Source not found"))
@@ -62,9 +61,7 @@ class SourceRepositoryImpl : SourceRepository {
 
     override suspend fun deleteSource(id: String): Result<Unit> {
         return try {
-            val currentSources = _sources.value.toMutableList()
-            currentSources.removeAll { it.id == id }
-            _sources.value = currentSources
+            sourceDao.deleteSourceById(id)
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -73,15 +70,7 @@ class SourceRepositoryImpl : SourceRepository {
 
     override suspend fun switchActiveSource(id: String, type: SourceType): Result<Unit> {
         return try {
-            val currentSources = _sources.value.toMutableList()
-            val updatedSources = currentSources.map { source ->
-                if (source.type == type) {
-                    source.copy(isActive = source.id == id)
-                } else {
-                    source
-                }
-            }
-            _sources.value = updatedSources
+            sourceDao.setActiveSource(id, type.name)
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -93,40 +82,16 @@ class SourceRepositoryImpl : SourceRepository {
             emit(ImportResult.Progress(0, 100))
             delay(500)
             
-            val sampleSources = listOf(
-                SourceDto(
-                    id = "api-1",
-                    name = "API Source 1",
-                    type = "SEARCH",
-                    url = "https://api.example.com/search",
-                    description = "Imported from API"
-                ),
-                SourceDto(
-                    id = "api-2",
-                    name = "API Source 2",
-                    type = "PARSER",
-                    url = "https://api.example.com/parser",
-                    description = "Imported from API"
-                )
-            )
-
-            val currentSources = _sources.value.toMutableList()
-            sampleSources.forEachIndexed { index, dto ->
-                val source = Source(
-                    id = dto.id,
-                    name = dto.name,
-                    type = SourceType.valueOf(dto.type),
-                    url = dto.url,
-                    isActive = dto.isActive,
-                    description = dto.description
-                )
-                currentSources.add(source)
-                emit(ImportResult.Progress(index + 1, sampleSources.size))
-                delay(200)
+            val sourceDtos = apiService.importSources(apiUrl)
+            
+            val sources = sourceDtos.mapIndexed { index, dto ->
+                emit(ImportResult.Progress(index + 1, sourceDtos.size))
+                delay(100)
+                dto.toDomain()
             }
-
-            _sources.value = currentSources
-            emit(ImportResult.Success(sampleSources.size))
+            
+            sourceDao.insertSources(sources.map { it.toEntity() })
+            emit(ImportResult.Success(sources.size))
         } catch (e: Exception) {
             emit(ImportResult.Error(e.message ?: "Failed to import from API"))
         }
@@ -137,27 +102,18 @@ class SourceRepositoryImpl : SourceRepository {
             emit(ImportResult.Progress(0, 100))
             delay(300)
 
-            val sources = json.decodeFromString<List<SourceDto>>(jsonContent)
-            val currentSources = _sources.value.toMutableList()
-
-            sources.forEachIndexed { index, dto ->
-                val source = Source(
-                    id = dto.id,
-                    name = dto.name,
-                    type = SourceType.valueOf(dto.type),
-                    url = dto.url,
-                    isActive = dto.isActive,
-                    description = dto.description
-                )
-                currentSources.add(source)
-                emit(ImportResult.Progress(index + 1, sources.size))
+            val sourceDtos = json.decodeFromString<List<com.sourcemanager.data.remote.dto.SourceDto>>(jsonContent)
+            
+            val sources = sourceDtos.mapIndexed { index, dto ->
+                emit(ImportResult.Progress(index + 1, sourceDtos.size))
                 delay(100)
+                dto.toDomain()
             }
-
-            _sources.value = currentSources
+            
+            sourceDao.insertSources(sources.map { it.toEntity() })
             emit(ImportResult.Success(sources.size))
         } catch (e: Exception) {
-            emit(ImportResult.Error(e.message ?: "Failed to import from JSON"))
+            emit(ImportResult.Error(e.message ?: "Failed to import from JSON: ${e.localizedMessage}"))
         }
     }
 

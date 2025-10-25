@@ -8,10 +8,12 @@ import com.sourcemanager.domain.model.SourceType
 import com.sourcemanager.domain.usecase.DeleteSourceUseCase
 import com.sourcemanager.domain.usecase.GetSourcesUseCase
 import com.sourcemanager.domain.usecase.SwitchActiveSourceUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class SourceListUiState(
     val sources: List<Source> = emptyList(),
@@ -20,7 +22,8 @@ data class SourceListUiState(
     val successMessage: String? = null
 )
 
-class SourceListViewModel(
+@HiltViewModel
+class SourceListViewModel @Inject constructor(
     private val getSourcesUseCase: GetSourcesUseCase,
     private val deleteSourceUseCase: DeleteSourceUseCase,
     private val switchActiveSourceUseCase: SwitchActiveSourceUseCase,

@@ -1,13 +1,7 @@
 package com.sourcemanager
 
 import android.app.Application
-import com.sourcemanager.di.AppContainer
+import dagger.hilt.android.HiltAndroidApp
 
-class SourceManagerApplication : Application() {
-    lateinit var appContainer: AppContainer
-
-    override fun onCreate() {
-        super.onCreate()
-        appContainer = AppContainer()
-    }
-}
+@HiltAndroidApp
+class SourceManagerApplication : Application()
