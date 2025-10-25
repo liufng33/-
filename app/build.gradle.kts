@@ -94,9 +94,6 @@ dependencies {
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
-    // OkHttp (for network operations from data layer)
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-
     // Accompanist (for system UI controller)
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.32.0")
 
