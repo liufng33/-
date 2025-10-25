@@ -1,241 +1,157 @@
-# Clean Architecture Android App
+# Video Parser Application
 
-A modern Android application built with Kotlin, showcasing Clean Architecture principles and the latest Android development technologies.
+A video parsing and streaming application built with Clean Architecture principles.
+
+## Overview
+
+This application provides a domain layer for managing video sources, parsing video URLs, searching for videos, and managing playback streams. It follows Clean Architecture to ensure maintainability, testability, and independence from external frameworks.
+
+## Features
+
+- **Video Search**: Search for videos across multiple configured sources
+- **URL Parsing**: Parse pasted video URLs to extract video information
+- **Source Management**: Add, edit, delete, and toggle video sources
+- **Playback Management**: Fetch and manage playback streams
+- **Multi-source Support**: Aggregate results from multiple search sources
+- **Parser Configuration**: Configure custom parsers for different video platforms
 
 ## Architecture
 
-This project follows Clean Architecture with a multi-module structure:
+The project follows Clean Architecture principles with clear separation of concerns:
 
 ```
-├── app (Presentation Layer)
-│   └── UI components, ViewModels, Navigation
-├── domain (Business Logic Layer)
-│   └── Use Cases, Domain Models, Repository Interfaces
-└── data (Data Layer)
-    └── Repository Implementations, Data Sources, Database, API
-```
-
-### Architecture Layers
-
-- **Presentation Layer (app module)**: Contains UI components built with Jetpack Compose, ViewModels, and navigation logic.
-- **Domain Layer (domain module)**: Pure Kotlin module containing business logic, use cases, and domain models. Has no Android dependencies.
-- **Data Layer (data module)**: Manages data from various sources (network, database, preferences) and provides implementations for repository interfaces defined in the domain layer.
-
-## Tech Stack
-
-### Core
-- **Kotlin** - Primary programming language
-- **Kotlin Coroutines** - Asynchronous programming
-- **Kotlin Flow** - Reactive data streams
-
-### Android
-- **Jetpack Compose** - Modern declarative UI toolkit
-- **Material3** - Material Design 3 components
-- **Navigation Compose** - Navigation framework
-- **Lifecycle** - Lifecycle-aware components
-- **ViewModel** - UI state management
-
-### Dependency Injection
-- **Hilt** - Dependency injection framework
-
-### Networking
-- **Retrofit** - HTTP client
-- **OkHttp** - HTTP client implementation
-- **Gson** - JSON serialization
-
-### Database
-- **Room** - SQLite database abstraction
-- **DataStore Preferences** - Key-value storage
-
-### Media
-- **ExoPlayer (Media3)** - Media playback
-
-### Utilities
-- **Jsoup** - HTML parsing
-
-### Quality & Testing
-- **Detekt** - Static code analysis
-- **JUnit4** - Unit testing
-- **MockK** - Mocking framework
-- **Coroutines Test** - Testing coroutines
-
-## Project Structure
-
-```
-com.cleanarch.app
-├── app/
-│   ├── ui/
-│   │   ├── base/
-│   │   │   └── BaseViewModel.kt (Base ViewModel with MVI pattern)
-│   │   ├── navigation/
-│   │   │   ├── AppNavigation.kt
-│   │   │   └── Screen.kt
-│   │   ├── screens/
-│   │   │   ├── home/
-│   │   │   ├── search/
-│   │   │   ├── player/
-│   │   │   └── settings/
-│   │   └── theme/
-│   │       ├── Color.kt
-│   │       ├── Theme.kt
-│   │       └── Type.kt
-│   └── CleanArchApp.kt (Application class)
+src/
 ├── domain/
-│   ├── model/
-│   │   └── Result.kt (Result wrapper for operations)
-│   ├── repository/
-│   │   └── SampleRepository.kt
-│   └── usecase/
-│       └── GetSampleDataUseCase.kt
-└── data/
-    ├── repository/
-    │   └── SampleRepositoryImpl.kt
-    ├── source/
-    │   ├── local/
-    │   │   ├── database/
-    │   │   │   ├── AppDatabase.kt
-    │   │   │   ├── dao/
-    │   │   │   └── entity/
-    │   │   └── preferences/
-    │   │       └── PreferencesManager.kt
-    │   └── remote/
-    │       ├── api/
-    │       │   └── ApiService.kt
-    │       └── RemoteDataSource.kt
-    └── di/
-        ├── DataModule.kt
-        ├── NetworkModule.kt
-        └── RepositoryModule.kt
+│   ├── entities/          # Core business entities
+│   ├── value-objects/     # Type-safe value objects
+│   ├── repositories/      # Repository interfaces (ports)
+│   └── use-cases/         # Business use cases
 ```
+
+### Domain Layer
+
+The domain layer contains:
+- **Entities**: VideoItem, SourceConfig, ParserConfig, ParseRule, PlaybackLink
+- **Value Objects**: SourceId, URL, SourceType, Quality
+- **Repository Interfaces**: Contracts for data persistence
+- **Use Cases**: Business operations and workflows
+
+For detailed documentation, see [DOMAIN.md](./DOMAIN.md).
 
 ## Getting Started
 
 ### Prerequisites
 
-- Android Studio Hedgehog or later
-- JDK 17
-- Android SDK with API 24+ (minimum) and API 34 (target)
+- Node.js 18+ and npm
 
-### Building the Project
+### Installation
 
-1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd <project-directory>
+npm install
 ```
-
-2. Open the project in Android Studio
-
-3. Sync Gradle:
-```bash
-./gradlew build
-```
-
-4. Run the app:
-- Select a device/emulator
-- Click Run or use `./gradlew installDebug`
 
 ### Running Tests
 
 ```bash
-# Run all unit tests
-./gradlew test
+# Run all tests
+npm test
 
-# Run tests for specific module
-./gradlew domain:test
-./gradlew data:test
-./gradlew app:test
+# Run tests in watch mode
+npm run test:watch
 
-# Run static code analysis
-./gradlew detekt
+# Run tests with coverage
+npm run test:coverage
 ```
 
-## Features
+### Building
 
-The app includes navigation stubs for the following screens:
-
-- **Home**: Main screen with navigation to other screens
-- **Search**: Search functionality placeholder
-- **Player**: Media player integration (ExoPlayer ready)
-- **Settings**: App settings and preferences
-
-## Key Patterns & Practices
-
-### MVI Pattern
-The app uses a Model-View-Intent (MVI) pattern with a `BaseViewModel` that provides:
-- `UiState`: Represents the current state of the UI
-- `UiEvent`: User actions and events
-- `UiEffect`: One-time side effects (navigation, showing toasts, etc.)
-
-### Result Wrapper
-Domain layer uses a `Result` sealed class for handling operation outcomes:
-- `Result.Success<T>`: Successful operation with data
-- `Result.Error`: Failed operation with exception
-- `Result.Loading`: Operation in progress
-
-### Dependency Injection
-Hilt is configured with the following modules:
-- `DatabaseModule`: Provides Room database and DAOs
-- `NetworkModule`: Provides Retrofit, OkHttp, and API services
-- `RepositoryModule`: Binds repository implementations
-
-## Code Quality
-
-### Detekt
-Static code analysis is configured with Detekt. Configuration file: `config/detekt/detekt.yml`
-
-Run detekt:
 ```bash
-./gradlew detekt
+npm run build
 ```
 
-### Testing Strategy
-- **Unit Tests**: Domain layer use cases and ViewModels
-- **Integration Tests**: Repository implementations
-- **UI Tests**: Compose UI components (framework ready)
+### Linting and Formatting
 
-## CI/CD
+```bash
+# Lint code
+npm run lint
 
-GitHub Actions workflow is configured in `.github/workflows/ci.yml` to:
-- Run static code analysis (Detekt)
-- Execute unit tests
-- Build the application
-- Upload build reports on failure
-
-## Configuration
-
-### API Configuration
-Update the base URL in `data/src/main/kotlin/com/cleanarch/data/di/NetworkModule.kt`:
-```kotlin
-private const val BASE_URL = "https://api.example.com/"
+# Format code
+npm run format
 ```
 
-### Database Configuration
-Database name can be changed in `data/src/main/kotlin/com/cleanarch/data/di/DataModule.kt`:
-```kotlin
-Room.databaseBuilder(context, AppDatabase::class.java, "app_database")
-```
+## Core Concepts
 
-## Contributing
+### Entities
 
-1. Create a feature branch
-2. Make your changes
-3. Ensure tests pass and detekt is clean
-4. Submit a pull request
+**VideoItem**: Represents a video with metadata (title, URL, thumbnail, duration, etc.)
+
+**SourceConfig**: Configuration for a search or parser source with API details
+
+**ParserConfig**: Configuration for parsing video URLs with rules and patterns
+
+**ParseRule**: Individual rule for extracting data (regex, CSS selector, XPath, JSON path)
+
+**PlaybackLink**: Playback URL with quality, format, and expiration information
+
+### Use Cases
+
+**SearchVideosUseCase**: Search for videos across sources with filtering and pagination
+
+**AddSourceUseCase**: Add new video sources with validation
+
+**EditSourceUseCase**: Modify existing source configurations
+
+**DeleteSourceUseCase**: Remove source configurations
+
+**ToggleSourceUseCase**: Enable or disable sources
+
+**ListSourcesUseCase**: List sources with optional filtering
+
+**ImportInitialSourcesUseCase**: Batch import sources for initial setup
+
+**ParsePastedUrlUseCase**: Parse pasted URLs to extract video information
+
+**FetchPlaybackStreamsUseCase**: Fetch playback links for videos
+
+## Repository Interfaces
+
+The domain layer defines repository interfaces that must be implemented by infrastructure layers:
+
+- `ISourceConfigRepository`: Manage source configurations
+- `ISearchSourceRepository`: Handle video search operations
+- `IParserSourceRepository`: Handle URL parsing operations
+- `IParserConfigRepository`: Manage parser configurations
+- `IPlaybackRepository`: Handle playback link operations
+
+## Testing
+
+The project includes comprehensive unit tests for:
+
+- Domain entities validation
+- Use case business logic
+- Error handling
+- Edge cases
+
+Test coverage reports are available in the `coverage/` directory after running `npm run test:coverage`.
+
+## Development Guidelines
+
+1. **Follow Clean Architecture**: Keep domain logic independent of frameworks
+2. **Write Tests**: All use cases and entities should have unit tests
+3. **Use Value Objects**: Wrap primitives in value objects for type safety
+4. **Validate Inputs**: Entities and use cases should validate their inputs
+5. **Handle Errors**: Use meaningful error messages
+6. **Document Code**: Add JSDoc comments for public APIs
 
 ## License
 
-This project is licensed under the Boost Software License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Boost Software License 1.0 - see the [LICENSE](LICENSE) file for details.
 
-## Future Enhancements
+## Future Work
 
-- [ ] Add UI tests with Compose Testing
-- [ ] Implement actual API integration
-- [ ] Add more comprehensive error handling
-- [ ] Implement offline-first architecture
-- [ ] Add more screens and features
-- [ ] Configure ProGuard rules for release builds
-- [ ] Add CI/CD pipeline for automatic deployments
-- [ ] Implement analytics and crash reporting
-- [ ] Add localization support
-- [ ] Implement biometric authentication
+- Implement infrastructure layer (databases, HTTP clients)
+- Add presentation layer (API, CLI, or GUI)
+- Implement authentication and authorization
+- Add caching layer
+- Implement rate limiting
+- Add monitoring and logging
