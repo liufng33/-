@@ -1,157 +1,242 @@
-# Video Parser Application
+# Local Persistence for Sources and Configuration
 
-A video parsing and streaming application built with Clean Architecture principles.
-
-## Overview
-
-This application provides a domain layer for managing video sources, parsing video URLs, searching for videos, and managing playback streams. It follows Clean Architecture to ensure maintainability, testability, and independence from external frameworks.
-
-## Features
-
-- **Video Search**: Search for videos across multiple configured sources
-- **URL Parsing**: Parse pasted video URLs to extract video information
-- **Source Management**: Add, edit, delete, and toggle video sources
-- **Playback Management**: Fetch and manage playback streams
-- **Multi-source Support**: Aggregate results from multiple search sources
-- **Parser Configuration**: Configure custom parsers for different video platforms
+This project implements local persistence for search/parser sources, custom rules, and user selections using Room database and DataStore for Android applications.
 
 ## Architecture
 
 The project follows Clean Architecture principles with clear separation of concerns:
 
-```
-src/
-├── domain/
-│   ├── entities/          # Core business entities
-│   ├── value-objects/     # Type-safe value objects
-│   ├── repositories/      # Repository interfaces (ports)
-│   └── use-cases/         # Business use cases
-```
+### Domain Layer (`domain/`)
+- **Models**: Domain models representing core business entities
+  - `Source`: Represents search/parser sources
+  - `CustomRule`: Represents custom parsing rules
+  - `UserSelection`: Represents user selections (favorites, bookmarks, history)
+  - `UserPreferences`: Represents user preferences and settings
+  
+- **Repository Interfaces**: Contracts for data operations
 
-### Domain Layer
+### Data Layer (`data/`)
+- **Entities**: Room database entities mapped to domain models
+- **DAOs**: Data Access Objects for database operations
+- **DataStore**: SharedPreferences alternative for lightweight settings
+- **Repository Implementations**: Concrete implementations of repository interfaces
 
-The domain layer contains:
-- **Entities**: VideoItem, SourceConfig, ParserConfig, ParseRule, PlaybackLink
-- **Value Objects**: SourceId, URL, SourceType, Quality
-- **Repository Interfaces**: Contracts for data persistence
-- **Use Cases**: Business operations and workflows
+### Key Features
 
-For detailed documentation, see [DOMAIN.md](./DOMAIN.md).
+#### 1. Room Database
+- **Database**: `AppDatabase` - Main Room database with version 1
+- **Entities**:
+  - `SourceEntity`: Stores search/parser sources with metadata
+  - `CustomRuleEntity`: Stores custom rules with foreign key to sources
+  - `UserSelectionEntity`: Stores user selections with foreign key to sources
+  
+- **DAOs**:
+  - `SourceDao`: CRUD operations for sources with Flow support
+  - `CustomRuleDao`: CRUD operations for custom rules
+  - `UserSelectionDao`: CRUD operations for user selections
 
-## Getting Started
+#### 2. DataStore Integration
+- `UserPreferencesDataStore`: Type-safe preferences storage for:
+  - Last selected source ID
+  - Auto-play settings
+  - Playback quality preferences
+  - Download settings
+  - Dark mode preference
 
-### Prerequisites
+#### 3. Migration Support
+- `DatabaseMigrations`: Handles database schema migrations
+- Schema export enabled for version control
 
-- Node.js 18+ and npm
+#### 4. Data Seeding
+- `DataSeeder`: Bootstrap initial data from:
+  - Bundled JSON file (`assets/sources.json`)
+  - Default fallback sources
+  - Remote API import capability
 
-### Installation
-
-```bash
-npm install
-```
-
-### Running Tests
-
-```bash
-# Run all tests
-npm test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Run tests with coverage
-npm run test:coverage
-```
-
-### Building
-
-```bash
-npm run build
-```
-
-### Linting and Formatting
-
-```bash
-# Lint code
-npm run lint
-
-# Format code
-npm run format
-```
-
-## Core Concepts
-
-### Entities
-
-**VideoItem**: Represents a video with metadata (title, URL, thumbnail, duration, etc.)
-
-**SourceConfig**: Configuration for a search or parser source with API details
-
-**ParserConfig**: Configuration for parsing video URLs with rules and patterns
-
-**ParseRule**: Individual rule for extracting data (regex, CSS selector, XPath, JSON path)
-
-**PlaybackLink**: Playback URL with quality, format, and expiration information
-
-### Use Cases
-
-**SearchVideosUseCase**: Search for videos across sources with filtering and pagination
-
-**AddSourceUseCase**: Add new video sources with validation
-
-**EditSourceUseCase**: Modify existing source configurations
-
-**DeleteSourceUseCase**: Remove source configurations
-
-**ToggleSourceUseCase**: Enable or disable sources
-
-**ListSourcesUseCase**: List sources with optional filtering
-
-**ImportInitialSourcesUseCase**: Batch import sources for initial setup
-
-**ParsePastedUrlUseCase**: Parse pasted URLs to extract video information
-
-**FetchPlaybackStreamsUseCase**: Fetch playback links for videos
-
-## Repository Interfaces
-
-The domain layer defines repository interfaces that must be implemented by infrastructure layers:
-
-- `ISourceConfigRepository`: Manage source configurations
-- `ISearchSourceRepository`: Handle video search operations
-- `IParserSourceRepository`: Handle URL parsing operations
-- `IParserConfigRepository`: Manage parser configurations
-- `IPlaybackRepository`: Handle playback link operations
+#### 5. Dependency Injection
+- Hilt modules for dependency injection:
+  - `DatabaseModule`: Provides Room database and DAOs
+  - `DataStoreModule`: Provides DataStore instance
+  - `RepositoryModule`: Binds repository implementations
 
 ## Testing
 
-The project includes comprehensive unit tests for:
+Comprehensive unit tests for all DAOs:
+- `SourceDaoTest`: Tests for source CRUD operations
+- `CustomRuleDaoTest`: Tests for custom rule operations
+- `UserSelectionDaoTest`: Tests for user selection operations
 
-- Domain entities validation
-- Use case business logic
-- Error handling
-- Edge cases
+Tests use:
+- Robolectric for Android framework simulation
+- Room in-memory database for isolated testing
+- Coroutines test support for async operations
+- InstantTaskExecutorRule for LiveData/Flow testing
 
-Test coverage reports are available in the `coverage/` directory after running `npm run test:coverage`.
+## Usage
 
-## Development Guidelines
+### Injecting Repositories
 
-1. **Follow Clean Architecture**: Keep domain logic independent of frameworks
-2. **Write Tests**: All use cases and entities should have unit tests
-3. **Use Value Objects**: Wrap primitives in value objects for type safety
-4. **Validate Inputs**: Entities and use cases should validate their inputs
-5. **Handle Errors**: Use meaningful error messages
-6. **Document Code**: Add JSDoc comments for public APIs
+```kotlin
+@Inject
+lateinit var sourceRepository: SourceRepository
 
-## License
+@Inject
+lateinit var customRuleRepository: CustomRuleRepository
 
-This project is licensed under the Boost Software License 1.0 - see the [LICENSE](LICENSE) file for details.
+@Inject
+lateinit var userSelectionRepository: UserSelectionRepository
 
-## Future Work
+@Inject
+lateinit var preferencesRepository: PreferencesRepository
+```
 
-- Implement infrastructure layer (databases, HTTP clients)
-- Add presentation layer (API, CLI, or GUI)
-- Implement authentication and authorization
-- Add caching layer
-- Implement rate limiting
-- Add monitoring and logging
+### Working with Sources
+
+```kotlin
+// Get all sources
+sourceRepository.getAllSources().collect { sources ->
+    // Handle sources
+}
+
+// Insert a new source
+val source = Source(
+    name = "My Source",
+    type = SourceType.SEARCH,
+    baseUrl = "https://api.example.com",
+    parserClass = "com.example.Parser"
+)
+val id = sourceRepository.insertSource(source)
+
+// Update source enabled state
+sourceRepository.updateSourceEnabled(id, false)
+```
+
+### Working with Custom Rules
+
+```kotlin
+// Get rules for a source
+customRuleRepository.getRulesBySourceId(sourceId).collect { rules ->
+    // Handle rules
+}
+
+// Insert a new rule
+val rule = CustomRule(
+    sourceId = sourceId,
+    name = "Filter Rule",
+    ruleType = RuleType.FILTER,
+    pattern = ".*\\.mp4$"
+)
+customRuleRepository.insertRule(rule)
+```
+
+### Working with User Selections
+
+```kotlin
+// Get recent favorites
+userSelectionRepository.getRecentSelectionsByType(
+    SelectionType.FAVORITE,
+    limit = 20
+).collect { favorites ->
+    // Handle favorites
+}
+
+// Add a favorite
+val selection = UserSelection(
+    sourceId = sourceId,
+    itemId = "item123",
+    itemType = SelectionType.FAVORITE,
+    title = "My Favorite Item"
+)
+userSelectionRepository.insertSelection(selection)
+```
+
+### Working with Preferences
+
+```kotlin
+// Observe preferences
+preferencesRepository.userPreferencesFlow.collect { prefs ->
+    // Handle preferences
+}
+
+// Update preferences
+preferencesRepository.updateLastSelectedSourceId(sourceId)
+preferencesRepository.updatePlaybackQuality(PlaybackQuality.HIGH)
+preferencesRepository.updateDarkModeEnabled(true)
+```
+
+### Data Seeding
+
+```kotlin
+@Inject
+lateinit var dataSeeder: DataSeeder
+
+// Seed initial data on first launch
+lifecycleScope.launch {
+    dataSeeder.seedInitialData()
+}
+
+// Import sources from JSON string
+lifecycleScope.launch {
+    dataSeeder.importSourcesFromJson(jsonString)
+}
+```
+
+## Dependencies
+
+- **Room**: 2.6.0 - Local database
+- **DataStore**: 1.0.0 - Preferences storage
+- **Coroutines**: 1.7.3 - Async operations
+- **Hilt**: 2.48 - Dependency injection
+- **Gson**: 2.10.1 - JSON parsing
+
+## Database Schema
+
+### Sources Table
+| Column | Type | Description |
+|--------|------|-------------|
+| id | Long | Primary key (auto-generated) |
+| name | String | Unique source name |
+| type | String | Source type (SEARCH, PARSER, HYBRID) |
+| base_url | String | Base URL for the source |
+| parser_class | String | Parser class name |
+| is_enabled | Boolean | Whether source is enabled |
+| priority | Int | Source priority for ordering |
+| metadata | String | JSON metadata |
+| created_at | Long | Creation timestamp |
+| updated_at | Long | Last update timestamp |
+
+### Custom Rules Table
+| Column | Type | Description |
+|--------|------|-------------|
+| id | Long | Primary key (auto-generated) |
+| source_id | Long | Foreign key to sources |
+| name | String | Rule name |
+| rule_type | String | Rule type (FILTER, TRANSFORM, etc.) |
+| pattern | String | Regex pattern |
+| replacement | String? | Optional replacement string |
+| is_enabled | Boolean | Whether rule is enabled |
+| priority | Int | Rule priority |
+| created_at | Long | Creation timestamp |
+| updated_at | Long | Last update timestamp |
+
+### User Selections Table
+| Column | Type | Description |
+|--------|------|-------------|
+| id | Long | Primary key (auto-generated) |
+| source_id | Long | Foreign key to sources |
+| item_id | String | Item identifier |
+| item_type | String | Selection type (FAVORITE, BOOKMARK, etc.) |
+| title | String | Item title |
+| metadata | String | JSON metadata |
+| selected_at | Long | Selection timestamp |
+| last_accessed_at | Long | Last access timestamp |
+
+## Best Practices
+
+1. **Use Flow for reactive data**: All queries return Flow for reactive updates
+2. **Coroutine support**: All suspend functions for async operations
+3. **Foreign key constraints**: Cascade delete for data integrity
+4. **Indexed columns**: Optimized queries with strategic indexes
+5. **Type converters**: JSON serialization for complex types
+6. **Migration support**: Schema versioning and migration support
+7. **Testing**: Comprehensive unit tests for all DAOs

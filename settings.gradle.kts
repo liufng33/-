@@ -14,7 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "CleanArchApp"
+rootProject.name = "LocalPersistence"
 include(":app")
-include(":domain")
-include(":data")
