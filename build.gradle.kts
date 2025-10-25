@@ -1,55 +1,14 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
-    kotlin("jvm") version "1.9.20"
-    kotlin("plugin.serialization") version "1.9.20"
-    id("org.jetbrains.kotlinx.kover") version "0.7.4"
+    id("com.android.application") version "8.2.0" apply false
+    id("com.android.library") version "8.2.0" apply false
+    id("org.jetbrains.kotlin.android") version "1.9.20" apply false
+    id("org.jetbrains.kotlin.jvm") version "1.9.20" apply false
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.20" apply false
+    id("com.google.dagger.hilt.android") version "2.48" apply false
+    id("org.jetbrains.kotlinx.kover") version "0.7.4" apply false
 }
 
-group = "com.remotedata"
-version = "1.0.0"
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    // Kotlin Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.7.3")
-    
-    // Retrofit & OkHttp
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("com.squareup.retrofit2:converter-simplexml:2.9.0")
-    implementation("com.squareup.retrofit2:converter-scalars:2.9.0")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
-    
-    // JSON/XML Serialization
-    implementation("com.google.code.gson:gson:2.10.1")
-    implementation("org.simpleframework:simple-xml:2.7.1")
-    
-    // Jsoup for HTML parsing
-    implementation("org.jsoup:jsoup:1.17.1")
-    
-    // Dependency Injection - Koin
-    implementation("io.insert-koin:koin-core:3.5.0")
-    
-    // Logging
-    implementation("io.github.oshai:kotlin-logging-jvm:5.1.0")
-    implementation("ch.qos.logback:logback-classic:1.4.11")
-    
-    // Testing
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5:1.9.20")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
-    testImplementation("io.mockk:mockk:1.13.8")
-    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
-}
-
-tasks.test {
-    useJUnitPlatform()
-}
-
-kotlin {
-    jvmToolchain(17)
+tasks.register("clean", Delete::class) {
+    delete(rootProject.buildDir)
 }

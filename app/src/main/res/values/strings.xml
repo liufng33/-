@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">影视</string>
+    
+    <!-- Navigation -->
+    <string name="nav_home">首页</string>
+    <string name="nav_player">播放器</string>
+    <string name="nav_sources">视频源</string>
+    
+    <!-- Home Screen -->
+    <string name="home_title">影视播放器</string>
+    <string name="url_input_label">视频URL</string>
+    <string name="url_input_placeholder">粘贴视频链接...</string>
+    <string name="select_parser">选择解析器</string>
+    <string name="parse_and_play">解析并播放</string>
+    <string name="parser_default">默认解析器</string>
+    <string name="recent_videos">最近播放</string>
+    
+    <!-- Player Screen -->
+    <string name="player_loading">加载中...</string>
+    <string name="player_error">播放失败</string>
+    <string name="player_retry">重试</string>
+    
+    <!-- Sources Screen -->
+    <string name="sources_title">视频源管理</string>
+    <string name="add_source">添加视频源</string>
+    <string name="source_name">名称</string>
+    <string name="source_url">URL</string>
+    <string name="save">保存</string>
+    <string name="cancel">取消</string>
+    <string name="delete">删除</string>
+    <string name="edit">编辑</string>
+    
+    <!-- Common -->
+    <string name="error_occurred">发生错误</string>
+    <string name="empty_url">请输入视频URL</string>
+    <string name="ok">确定</string>
+    <string name="back">返回</string>
+</resources>
